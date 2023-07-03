@@ -1,6 +1,5 @@
 package com.snapi.service;
 
-import com.snapi.controller.UserController;
 import com.snapi.domain.User;
 import com.snapi.dto.user.UserDetailsDTO;
 import com.snapi.dto.user.UserUpdateDTO;

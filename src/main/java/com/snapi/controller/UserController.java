@@ -1,7 +1,6 @@
 package com.snapi.controller;
 
 import com.snapi.dto.user.UserUpdateDTO;
-import com.snapi.repository.UserRepository;
 import com.snapi.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
