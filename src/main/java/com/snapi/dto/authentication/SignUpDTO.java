@@ -20,7 +20,8 @@ public record SignUpDTO(
         @NotBlank
         String password,
         
-        String picLink
+        String picLink,
+        String description
         
 ) {
 }

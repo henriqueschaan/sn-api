@@ -1,8 +1,8 @@
 package com.snapi.domain;
 
-import com.snapi.repository.UserRepository;
 import com.snapi.dto.post.PostCreationDTO;
 import com.snapi.dto.post.PostUpdateDTO;
+import com.snapi.repository.UserRepository;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,10 +26,10 @@ public class Post {
     private Boolean deleted = false;
 
     @CreationTimestamp
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDate updatedAt;
+    private LocalDateTime updatedAt;
     
     private String title;
 
@@ -44,6 +44,8 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    private int likesCount;
 
     public Post(PostCreationDTO data, UserRepository repository, Long userId) {
         this.title = data.title();

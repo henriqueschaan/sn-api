@@ -11,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/posts")
 public class PostController {
@@ -24,13 +26,17 @@ public class PostController {
         return postService.createPost(data, authentication);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PostDetailsDTO> detailPost(@PathVariable Long id) {
+        return postService.detailPost(id);
+    }
+
     @PutMapping("/{id}")
     @Transactional
     public ResponseEntity<?> updatePost(@RequestBody @Valid PostUpdateDTO data, @PathVariable Long id, Authentication authentication) {
         return postService.updatePost(data, id, authentication);
     }
 
-    // Endpoint para alterar estado de privacidade do post
     @PutMapping("/{id}/privacy")
     @Transactional
     public ResponseEntity<?> togglePostPrivacy(@PathVariable Long id, Authentication authentication) {
@@ -47,5 +53,22 @@ public class PostController {
     public ResponseEntity<?> getPostsByUserId(@PathVariable Long userId, Authentication authentication) {
         return postService.getPostsByUserId(userId, authentication);
     }
+
+    @GetMapping("/feed/{userId}")
+    public ResponseEntity<List<PostDetailsDTO>> getPostsByFriends(@PathVariable Long userId) {
+        return postService.getPostsByFriends(userId);
+    }
+
+    @GetMapping("/feed")
+    public ResponseEntity<List<PostDetailsDTO>> getAllActivePosts() {
+        return postService.getAllActivePosts();
+    }
+
+    @PostMapping("/{id}/like")
+    @Transactional
+    public ResponseEntity<?> likePost(@PathVariable Long id) {
+        return postService.likePost(id);
+    }
+
 
 }

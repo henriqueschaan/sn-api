@@ -33,6 +33,12 @@ public class PostService {
         return ResponseEntity.ok(new PostDetailsDTO(post));
     }
 
+    public ResponseEntity<PostDetailsDTO> detailPost(Long id) {
+        var OpPost = repository.findById(id);
+        Post post = OpPost.get();
+        return ResponseEntity.ok(new PostDetailsDTO(post));
+    }
+
     public ResponseEntity<?> updatePost(PostUpdateDTO data, Long id, Authentication authentication) {
         Optional<Post> optionalPost = repository.findById(id);
 
@@ -84,7 +90,7 @@ public class PostService {
     }
 
     public ResponseEntity<?> deletePost(Long id, Authentication authentication) {
-        
+
         Optional<Post> optionalPost = repository.findById(id);
 
         // Verifica se um post com essa id existe
@@ -101,7 +107,7 @@ public class PostService {
 
         post.delete();
         return ResponseEntity.noContent().build();
-        
+
     }
 
     public ResponseEntity<?> getPostsByUserId(Long userId, Authentication authentication) {
@@ -123,17 +129,38 @@ public class PostService {
 
         // Se é o mesmo usuário, recupera todos os posts não-deletados
         if (((User) authentication.getPrincipal()).getId().equals(userId)) {
-            posts = repository.findByUserIdAndDeletedFalse(userId);
+            posts = repository.findByUserIdAndDeletedFalseOrderByCreatedAtDesc(userId);
         }
 
         // Se é outro usuário, recupera posts não-privados e não-deletados
         else {
-            posts = repository.findByUserIdAndIsPrivateFalseAndDeletedFalse(userId);
+            posts = repository.findByUserIdAndIsPrivateFalseAndDeletedFalseOrderByCreatedAtDesc(userId);
         }
 
         // Transforma em DTOs e retorna
         List<PostDetailsDTO> dtos = posts.stream().map(PostDetailsDTO::new).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
+    }
+
+    public ResponseEntity<List<PostDetailsDTO>> getPostsByFriends(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        List<User> friends = userRepository.findFriendsById(userId);
+        List<Post> posts = repository.findByUserInAndDeletedFalseOrderByCreatedAtDesc(friends);
+        List<PostDetailsDTO> dtos = posts.stream().map(PostDetailsDTO::new).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    public ResponseEntity<List<PostDetailsDTO>> getAllActivePosts() {
+        List<Post> posts = repository.findByDeletedFalseAndUser_DeletedFalseOrderByCreatedAtDesc();
+        List<PostDetailsDTO> dtos = posts.stream().map(PostDetailsDTO::new).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    public ResponseEntity<?> likePost(Long id) {
+        Post post = repository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
+        post.setLikesCount(post.getLikesCount() + 1);
+        repository.save(post);
+        return ResponseEntity.ok(new PostDetailsDTO(post));
     }
 
 }

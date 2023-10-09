@@ -13,9 +13,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,12 +31,12 @@ public class User implements UserDetails {
     private Long id;
 
     private Boolean deleted = false;
-    
+
     @CreationTimestamp
-    private LocalDate createdAt;
-    
+    private LocalDateTime createdAt;
+
     @UpdateTimestamp
-    private LocalDate updatedAt;
+    private LocalDateTime updatedAt;
     
     private String name;
     private String username;
@@ -43,6 +44,15 @@ public class User implements UserDetails {
     private String email;
     private String password;
     private String picLink;
+    private String description;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_friends",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "friend_id")
+    )
+    private Set<User> friends;
     
     public User(SignUpDTO dto) {
         this.name = dto.name();
@@ -51,6 +61,7 @@ public class User implements UserDetails {
         this.email = dto.email();
         this.password = dto.password();
         this.picLink = dto.picLink();
+        this.description = dto.description();
     }
     
     public void update(UserUpdateDTO dto) {
@@ -74,12 +85,26 @@ public class User implements UserDetails {
         if (dto.picLink() != null) {
             this.picLink = dto.picLink();
         }
+
+        if (dto.description() != null) {
+            this.description = dto.description();
+        }
         
     }
 
     public void delete() {this.deleted = true;}
     
     public void reactivate() {this.deleted = false;}
+
+    public void addFriend(User friend) {
+        this.friends.add(friend);
+        friend.getFriends().add(this);
+    }
+
+    public void removeFriend(User friend) {
+        this.friends.remove(friend);
+        friend.getFriends().remove(this);
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

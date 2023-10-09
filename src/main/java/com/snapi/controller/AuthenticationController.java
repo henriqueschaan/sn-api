@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,7 +41,7 @@ public class AuthenticationController {
     @PostMapping("/signup")
     @Transactional
     public ResponseEntity createUser(@Valid @RequestBody SignUpDTO dto, UriComponentsBuilder uriBuilder) {
-        
+
         // Verifica se username, email e telefone já não existem
         if (repository.existsByUsername(dto.username())) {
             return ResponseEntity.badRequest().body("Username already exists");
@@ -51,33 +52,43 @@ public class AuthenticationController {
         if (dto.phone() != null && repository.existsByPhone(dto.phone())) {
             return ResponseEntity.badRequest().body("Phone number already exists");
         }
-        
+
         // Cria e salva o usuário com senha encriptada
         var user = new User(dto);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         repository.save(user);
         var uri = uriBuilder.path("/users/{id}").buildAndExpand(user.getId()).toUri();
         return ResponseEntity.created(uri).body(new UserDetailsDTO(user));
-        
+
     }
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid LogInDTO dto) {
 
-        //Autentica o usuário e gera o token
-        var authToken = new UsernamePasswordAuthenticationToken(dto.username(), dto.password());
-        var authentication = manager.authenticate(authToken);
-        User user = (User) authentication.getPrincipal();
-        var tokenJWT = tokenService.gerarToken(user);
-
-        //Barra o login de usuário deletado
-        if (user.getDeleted()) {
-            return new ResponseEntity("User has been deleted", HttpStatus.FORBIDDEN);
+        if (!repository.existsByUsername(dto.username())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User does not exist");
         }
 
-        //Retorna o token
-        return ResponseEntity.ok(new TokenDTO(tokenJWT));
-        
+        try {
+            // Autentica o usuário e gera o token
+            var authToken = new UsernamePasswordAuthenticationToken(dto.username(), dto.password());
+            System.out.println(authToken);
+            var authentication = manager.authenticate(authToken);
+            User user = (User) authentication.getPrincipal();
+            var tokenJWT = tokenService.gerarToken(user);
+
+            // Barra o login de usuário deletado
+            if (user.getDeleted()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User has been deleted");
+            }
+
+            // Retorna o token
+            return ResponseEntity.ok(new TokenDTO(tokenJWT, user.getId(), user.getUsername()));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password");
+        }
+
     }
 
 }
+

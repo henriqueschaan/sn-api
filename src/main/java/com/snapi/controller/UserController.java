@@ -15,16 +15,21 @@ public class UserController {
     
     @Autowired
     private UserService userService;
-    
-    @GetMapping("/{id}")
-    public ResponseEntity detailUser(@PathVariable Long id) {
-        return userService.detailUser(id);
+
+    @GetMapping("/{username}")
+    public ResponseEntity detailUser(@PathVariable String username, @RequestParam(required = false) Long loggedInUserId) {
+        return userService.detailUser(username, loggedInUserId);
     }
 
     @PutMapping("/{id}")
     @Transactional
     public ResponseEntity updateUser(@RequestBody @Valid UserUpdateDTO dto, @PathVariable Long id, Authentication authentication) {
         return userService.updateUser(dto, id, authentication);
+    }
+
+    @GetMapping("/update/{id}")
+    public ResponseEntity updateInfo(@PathVariable Long id, Authentication authentication) {
+        return userService.updateInfo(id, authentication);
     }
 
     @DeleteMapping("/{id}")
@@ -36,6 +41,23 @@ public class UserController {
     @GetMapping
     public ResponseEntity getAllUsers() {
         return userService.getAllUsers();
+    }
+
+    @PostMapping("/{userId}/addFriend/{friendId}")
+    @Transactional
+    public ResponseEntity<?> addFriend(@PathVariable Long userId, @PathVariable Long friendId) {
+        return userService.addFriend(userId, friendId);
+    }
+
+    @PostMapping("/{userId}/removeFriend/{friendId}")
+    @Transactional
+    public ResponseEntity<?> removeFriend(@PathVariable Long userId, @PathVariable Long friendId) {
+        return userService.removeFriend(userId, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public ResponseEntity<?> listFriends(@PathVariable Long id) {
+        return userService.listFriends(id);
     }
 
 }

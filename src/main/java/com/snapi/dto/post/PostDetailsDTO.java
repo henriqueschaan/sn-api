@@ -2,13 +2,13 @@ package com.snapi.dto.post;
 
 import com.snapi.domain.Post;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record PostDetailsDTO(
         Long id,
         Boolean deleted,
-        LocalDate createdAt,
-        LocalDate updatedAt,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
         String title,
         String description,
         String picLink,
@@ -16,7 +16,9 @@ public record PostDetailsDTO(
         Boolean isPrivate,
         Long userId,
         String name,
-        String username
+        String username,
+        String userPicLink,
+        int likesCount
 ) {
     public PostDetailsDTO(Post post) {
         this(post.getId(),
@@ -30,6 +32,8 @@ public record PostDetailsDTO(
                 post.getIsPrivate(),
                 post.getUser().getId(),
                 post.getUser().getName(),
-                post.getUser().getUsername());
+                post.getUser().getUsername(),
+                post.getUser().getPicLink(),
+                post.getLikesCount());
     }
 }
