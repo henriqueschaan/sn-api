@@ -21,7 +21,7 @@ public class TokenService {
             var algoritmo = Algorithm.HMAC256(SECRET);
             return JWT.create()
                     .withIssuer("SN API")
-                    .withSubject(user.getUsername())
+                    .withSubject(user.getId().toString())
                     .withExpiresAt(expDate())
                     .sign(algoritmo);
         } catch (JWTCreationException exception) {

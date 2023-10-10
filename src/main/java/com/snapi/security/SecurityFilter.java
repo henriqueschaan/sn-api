@@ -1,5 +1,6 @@
 package com.snapi.security;
 
+import com.snapi.domain.User;
 import com.snapi.repository.UserRepository;
 import com.snapi.service.TokenService;
 import jakarta.servlet.FilterChain;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -28,9 +30,12 @@ public class SecurityFilter extends OncePerRequestFilter {
         var tokenJWT = recuperarToken(request);
         if (tokenJWT != null) {
             var subject = tokenService.getSubject(tokenJWT);
-            var user = repository.findByUsername(subject);
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            Optional<User> user = repository.findById(Long.parseLong(subject));
+            if(user.isPresent()){
+                User u = user.get();
+                var authentication =   new UsernamePasswordAuthenticationToken(u, null, u.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
         filterChain.doFilter(request, response);
     }
